@@ -1,0 +1,16 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.2.0
+  hooks:
+    - id: trailing-whitespace
+      exclude: \.gitignore
+    - id: check-case-conflict
+    - id: end-of-file-fixer
+    - id: check-yaml
+    - id: check-added-large-files
+- repo: https://github.com/cisagov/pre-commit-packer
+  rev: v0.0.2
+  hooks:
+    # How to use with variable files?
+    # - id: packer_validate
+    - id: packer_fmt
