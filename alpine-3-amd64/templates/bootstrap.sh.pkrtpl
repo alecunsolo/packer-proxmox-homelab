@@ -1,0 +1,58 @@
+#!/bin/ash
+set -xe
+
+setup-keymap ${keyboard_keymap} ${keyboard_layout}
+setup-hostname ${hostname}
+rc-service hostname --quiet restart
+setup-devd -C mdev
+setup-interfaces -a
+setup-timezone ${timezone}
+setup-ntp chrony
+setup-apkrepos -c -1
+rc-update --quiet add networking boot
+rc-update --quiet add urandom boot
+apk upgrade -U
+apk add lvm2 e2fsprogs parted
+parted -a opt -s ${disk_device} mklabel gpt
+parted -a opt -s ${disk_device} mkpart boot ext4 1Mib 256M
+parted -a opt -s ${disk_device} set 1 legacy_boot on
+parted -a opt -s ${disk_device} mkpart root 256M 100%
+parted -a opt -s ${disk_device} set 2 lvm on
+mkfs.ext4 ${disk_device}1
+pvcreate ${disk_device}2
+vgcreate vg0 ${disk_device}2
+lvcreate -L 1G vg0 -n log
+lvcreate -L 1G vg0 -n home
+lvcreate -L 10G vg0 -n root
+%{ if create_swap ~}
+lvcreate -L 2G vg0 -n swap
+mkswap /dev/vg0/swap
+swapon /dev/vg0/swap
+%{ endif ~}
+mkfs.ext4 /dev/vg0/root
+mkfs.ext4 /dev/vg0/log
+mkfs.ext4 /dev/vg0/home
+# Root
+mkdir -p /mnt
+mount -t ext4 /dev/vg0/root /mnt
+# Home
+mkdir -p /mnt/home
+mount -t ext4 /dev/vg0/home /mnt/home
+# Boot
+mkdir -p /mnt/boot
+mount -t ext4 /dev/sda1 /mnt/boot
+# Logs
+mkdir -p /mnt/var/log
+mount -t ext4 /dev/vg0/log /mnt/var/log
+setup-sshd openssh
+setup-disk -v -m sys /mnt
+%{ if create_swap ~}
+echo '/dev/vg0/swap     swap     swap    defaults   0 0' >> /mnt/etc/fstab
+%{ endif ~}
+umount /mnt/boot
+umount /mnt/home
+umount /mnt/var/log
+umount /mnt
+# vgchange -an
+dd bs=440 conv=notrunc count=1 if=/usr/share/syslinux/gptmbr.bin of=${disk_device}
+reboot

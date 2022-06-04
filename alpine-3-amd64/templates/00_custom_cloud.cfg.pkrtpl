@@ -1,0 +1,27 @@
+#cloud-config
+apk_repos:
+  alpine_repo:
+    community_enabled: true
+    version: 'v3.16'
+
+package_update: true
+package_upgrade: true
+package_reboot_if_required: true
+
+locale: ${locale}
+timezone: ${timezone}
+
+datasource_list:
+  - NoCloud
+  - ConfigDrive
+  - None
+
+ntp:
+  enabled: true
+  ntp_client: chrony
+%{if length(ntp_servers) > 0 ~}
+  servers:
+%{ for addr in ntp_servers ~}
+  - ${addr}
+%{ endfor ~}
+%{ endif ~}

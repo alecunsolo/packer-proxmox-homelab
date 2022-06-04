@@ -1,0 +1,16 @@
+#!/bin/ash
+set -xe
+
+# Add temporary ssh key
+mkdir -p /root/.ssh
+chmod 700 /root/.ssh
+echo "${ssh_public_key}" > /root/.ssh/authorized_keys
+chmod 600 /root/.ssh/authorized_keys
+
+# Setup guest agent
+apk add qemu-guest-agent
+rc-update add qemu-guest-agent
+rc-service qemu-guest-agent restart
+%{ if create_swap ~}
+rc-update add swap
+%{ endif ~}
