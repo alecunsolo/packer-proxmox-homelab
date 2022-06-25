@@ -1,0 +1,70 @@
+#version=RHEL8
+# Use graphical install
+graphical
+
+# Keyboard layouts
+keyboard --vckeymap=${keyboard_keymap} --xlayouts='${keyboard_layout}'
+# System language
+lang ${language}
+# System timezone
+timezone ${timezone} --utc
+
+# Network information
+network  --bootproto=dhcp --device=ens18 --ipv6=auto --activate
+network  --hostname=${hostname}
+
+# Repo Mirrorlist
+url --mirrorlist=https://mirrors.almalinux.org/mirrorlist/$releasever/baseos
+repo --name=AppStream --mirrorlist=https://mirrors.almalinux.org/mirrorlist/$releasever/appstream
+
+#repo --name=AppStream --mirrorlist=https://mirrors.almalinux.org/mirrorlist?arch=$basearch&repo=AppStream-$releasever
+
+# Run the Setup Agent on first boot
+firstboot --enable
+
+ignoredisk --only-use=sda
+# Partition clearing information
+clearpart --none --initlabel
+# Disk partitioning information
+part /boot --fstype="xfs" --ondisk=sda --size=512 --label=boot
+part pv.01 --fstype="lvmpv" --ondisk=sda --size=1 --grow
+
+volgroup vg0 --pesize=4096 pv.01
+logvol  /var/log  --fstype="xfs"   --size=1024   --label="log"   --name=log    --vgname=vg0
+logvol  /home     --fstype="xfs"   --size=2048   --label="home"  --name=home   --vgname=vg0
+logvol  /         --fstype="xfs"   --size=10240  --label="root"  --name=root   --vgname=vg0
+%{ if create_swap ~}
+logvol  swap      --fstype="swap"  --size=2048   --name=swap     --vgname=vg0
+%{ endif ~}
+
+%packages
+@^minimal-environment
+openssh-server
+qemu-guest-agent
+%end
+
+%addon com_redhat_kdump --enable --reserve-mb='auto'
+%end
+
+#Root password
+rootpw --lock
+# user --groups=wheel --name=${ssh_username} --password=${ssh_password} --iscrypted
+user --groups=wheel --name=${ssh_username} --lock
+sshkey --username=${ssh_username} "${ssh_public_key}"
+
+reboot
+
+%post
+# sudo
+sed -i "s/^.*requiretty/#Defaults requiretty/" /etc/sudoers
+echo '${ssh_username} ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers.d/packer
+chmod 440 /etc/sudoers.d/packer
+
+%end
+
+# Not really useful. Left here as a reference
+%anaconda
+pwpolicy root --minlen=6 --minquality=1 --notstrict --nochanges --notempty
+pwpolicy user --minlen=6 --minquality=1 --notstrict --nochanges --emptyok
+pwpolicy luks --minlen=6 --minquality=1 --notstrict --nochanges --notempty
+%end

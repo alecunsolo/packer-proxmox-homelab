@@ -1,0 +1,29 @@
+#cloud-config
+yum_repos:
+  docker-ce-stable:
+    baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
+    name: Docker CE Stable - $basearch
+    enabled: false
+    gpgcheck: true
+    gpgkey: https://download.docker.com/linux/centos/gpg
+
+package_update: true
+package_upgrade: true
+package_reboot_if_required: true
+
+locale: ${locale}
+timezone: ${timezone}
+
+datasource_list:
+  - NoCloud
+  - ConfigDrive
+  - None
+
+ntp:
+  enabled: true
+%{if length(ntp_servers) > 0 ~}
+  servers:
+%{ for addr in ntp_servers ~}
+  - ${addr}
+%{ endfor ~}
+%{ endif ~}
