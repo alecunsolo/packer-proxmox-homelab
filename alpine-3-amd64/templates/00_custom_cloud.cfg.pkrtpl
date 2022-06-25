@@ -7,6 +7,21 @@ apk_repos:
 package_update: true
 package_upgrade: true
 package_reboot_if_required: true
+packages:
+  - bat
+  - bind-tools
+  - chezmoi
+  - curl
+  - fd
+  - fzf
+  - git
+  - gpg
+  - iproute2
+  - libarchive-tools
+  - neovim
+  - sudo
+  - tmux
+  - zsh
 
 locale: ${locale}
 timezone: ${timezone}

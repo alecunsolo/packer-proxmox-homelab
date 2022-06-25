@@ -40,7 +40,6 @@ build {
 
   provisioner "shell" {
     scripts = [
-      "scripts/common-packages.sh",
       "scripts/cloud-init.sh",
       "scripts/clean-up.sh"
     ]
