@@ -16,6 +16,9 @@ datasource_list:
   - ConfigDrive
   - None
 
+network:
+  config: disabled
+
 ntp:
   enabled: true
   ntp_client: chrony
