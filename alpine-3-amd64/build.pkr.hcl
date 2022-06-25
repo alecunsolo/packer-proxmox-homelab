@@ -34,6 +34,7 @@ build {
       locale      = var.locale
       timezone    = var.timezone
       ntp_servers = var.ntp_servers
+      devices     = var.growpart_devices
     })
     destination = "/tmp/00_custom_cloud.cfg"
   }

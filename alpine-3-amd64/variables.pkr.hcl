@@ -181,3 +181,9 @@ variable "cloud_init_storage_pool" {
   description = "Name of the Proxmox storage pool to store the Cloud-Init CDROM on. If not given, the storage pool of the boot device will be used (disk_storage_pool)."
   default     = null
 }
+
+variable "growpart_devices" {
+  type        = list(string)
+  description = "List of devices to grow using cloud-init growpart"
+  default     = ["/"]
+}
