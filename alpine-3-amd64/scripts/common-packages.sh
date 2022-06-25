@@ -7,6 +7,7 @@ apk add bat \
     fzf \
     git \
     gpg \
+    iproute2 \
     libarchive-tools \
     neovim \
     sudo \
